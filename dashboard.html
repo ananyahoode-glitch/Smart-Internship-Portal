@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f1f5f9; color: #1e293b; }
+        header { background: #0f172a; color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        header h2 { font-weight: 800; font-size: 22px; }
+        nav a { color: #94a3b8; text-decoration: none; margin-left: 20px; font-weight: 500; cursor: pointer; font-size: 15px; transition: 0.3s; }
+        nav a:hover { color: #fff; }
+        .logout-btn { background: #ef4444; padding: 8px 16px; border-radius: 6px; color: white !important; }
+        .logout-btn:hover { background: #dc2626; }
+        
+        .dashboard { padding: 40px; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .welcome { background: linear-gradient(to right, #2563eb, #7c3aed); color: white; padding: 35px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(37,99,235,0.15); }
+        .welcome h1 { margin-bottom: 10px; font-size: 32px; font-weight: 800; }
+        .welcome p { font-size: 16px; opacity: 0.9; }
+        
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
+        .card h2 { color: #2563eb; margin-bottom: 15px; font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* Premium Live Notifications Track Box */
+        .notice-panel { background: #ffffff; border-radius: 15px; padding: 30px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .notice-panel h3 { font-size: 18px; margin-bottom: 20px; color: #0f172a; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .notice-list { display: flex; flex-direction: column; gap: 15px; }
+        .notice-item { padding: 15px 20px; border-left: 4px solid #eab308; background: #f8fafc; border-radius: 0 10px 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        .notice-item.scheduled { border-left-color: #10b981; background: #f0fdf4; }
+        .notice-title { font-weight: 600; font-size: 15px; margin-bottom: 30px; }
+        .notice-date { font-size: 13px; color: #64748b; font-weight: 500; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .empty-notice { color: #64748b; font-style: italic; font-size: 14px; text-align: center; padding: 10px 0; }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>Student Dashboard</h2>
+        <nav>
+            <a href="profile.html">My Profile Card</a>
+            <a href="internships.html">Explore Internships</a>
+            <a onclick="logout()" class="logout-btn">Logout</a>
+        </nav>
+    </header>
+
+    <section class="dashboard">
+        <div class="welcome">
+            <h1 id="welcomeName">Welcome, Student 👋</h1>
+            <p>Manage your internship opportunities, applications, and scheduling tracking updates in real-time.</p>
+            <br>
+            <h4 id="clock" style="font-weight: 500; opacity: 0.8; font-size: 14px;">🕒 Synchronizing Node Clocks...</h4>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <h2>Application Status Indexes</h2>
+                <p style="margin-bottom: 10px; font-size: 15px;">⏳ <span id="reviewCount">0</span> Applications Under Review</p>
+                <p style="color: #10b981; font-size: 15px;">✅ <span id="scheduleCount">0</span> Interviews Scheduled</p>
+            </div>
+            <div class="card">
+                <h2>Quick Reference Metrics</h2>
+                <p style="font-size: 14px; color: #64748b; line-height: 1.5;">Your verified profile initial credentials and linked resume paths are actively hosted on the PostgreSQL master database configuration schema maps.</p>
+            </div>
+        </div>
+
+        <div class="notice-panel">
+            <h3>🔔 Operational Tracking Live Bulletins</h3>
+            <div class="notice-list" id="studentNoticeContainer">
+                <div class="empty-notice">Querying backend matrix pipeline maps for tracking updates...</div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const profileData = localStorage.getItem("userProfile");
+            if (!profileData) { window.location.href = "login.html"; return; }
+            
+            const user = JSON.parse(profileData);
+            document.getElementById("welcomeName").innerText = `Welcome, ${user.name} 👋`;
+            
+            // Execute lookups for this specific candidate student id
+            fetchStudentApplications(user.id);
+        });
+
+        // Query the master applications stream list and filter down match indexes dynamically
+        async function fetchStudentApplications(studentId) {
+            try {
+                const response = await fetch("http://localhost:3000/api/applications/admin-view");
+                const allApplications = await response.json();
+                
+                // Filter down to rows belonging only to the logged-in student
+                const myApps = allApplications.filter(app => app.student_id === studentId);
+                const container = document.getElementById("studentNoticeContainer");
+                
+                let underReview = 0;
+                let scheduled = 0;
+
+                if (myApps.length === 0) {
+                    container.innerHTML = `<div class="empty-notice">No active notification logs found. Try applying for an internship position track!</div>`;
+                    return;
+                }
+
+                // Map results into interactive status alerts layout rows
+                container.innerHTML = myApps.map(app => {
+                    let isScheduled = app.status === 'Interview Scheduled';
+                    if (isScheduled) scheduled++; else underReview++;
+
+                    return `
+                        <div class="notice-item ${isScheduled ? 'scheduled' : ''}">
+                            <div>
+                                <div class="notice-title" style="margin-bottom: 4px; color: #0f172a;">
+                                    💼 New Updates for <b>${app.job_title}</b>
+                                </div>
+                                <div class="notice-date">
+                                    ${isScheduled ? `🗓️ Interview set for: <b style="color:#10b981;">${app.interview_date}</b>` : '⏳ File document package received by Admin panel reviewing arrays.'}
+                                </div>
+                            </div>
+                            <span class="status-badge" style="
+                                background: ${isScheduled ? 'rgba(16,185,129,0.1)' : 'rgba(234,179,8,0.1)'};
+                                color: ${isScheduled ? '#10b981' : '#eab308'};">
+                                ${app.status}
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+
+                // Update the counter numbers at the top of the dashboard card
+                document.getElementById("reviewCount").innerText = underReview;
+                document.getElementById("scheduleCount").innerText = scheduled;
+
+            } catch (error) {
+                console.error("Dashboard error:", error);
+                document.getElementById("studentNoticeContainer").innerHTML = `<div class="empty-notice" style="color:red;">❌ Fault connecting async server lines.</div>`;
+            }
+        }
+
+        function updateClock() { 
+            document.getElementById("clock").innerHTML = "🕒 System Localized Time: " + new Date().toLocaleString(); 
+        }
+        setInterval(updateClock, 1000); 
+        updateClock();
+
+        function logout() { 
+            localStorage.removeItem("userProfile"); 
+            window.location.href = "login.html"; 
+        }
+    </script>
+</body>
+</html>

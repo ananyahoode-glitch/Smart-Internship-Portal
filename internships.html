@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Internships</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+        header { background: #0f172a; color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+        header h2 { font-weight: 800; font-size: 22px; }
+        nav a { color: #94a3b8; text-decoration: none; margin-left: 20px; font-weight: 500; font-size: 15px; }
+        nav a:hover { color: #fff; }
+        .title { text-align: center; padding: 50px 20px 30px; }
+        .title h1 { color: #2563eb; font-size: 32px; font-weight: 800; margin-bottom: 10px; }
+        .title p { color: #64748b; font-size: 16px; margin-bottom: 25px; }
+        .search-container { margin: 0 auto; text-align: center; max-width: 500px; width: 90%; }
+        .search-box { padding: 14px 24px; width: 100%; border-radius: 30px; border: 1px solid #cbd5e1; font-size: 16px; outline: none; }
+        .search-box:focus { border-color: #2563eb; }
+        .internship-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; padding: 20px 40px 60px; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; flex-direction: column; }
+        .company { color: #2563eb; font-size: 22px; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; }
+        .role { font-size: 18px; margin-bottom: 15px; font-weight: 700; color: #0f172a; }
+        .details { margin-bottom: 25px; color: #475569; line-height: 1.7; font-size: 15px; flex-grow: 1; }
+        button { width: 100%; padding: 12px; border: none; background: #2563eb; color: white; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 600; }
+        button:hover { background: #1d4ed8; }
+        .empty-msg { text-align: center; color: #64748b; padding: 60px 20px; grid-column: 1 / -1; }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>Smart Internship Portal</h2>
+        <nav><a href="dashboard.html">Dashboard</a><a href="profile.html">My Profile</a><a href="login.html">Logout</a></nav>
+    </header>
+
+    <section class="title">
+        <h1>Active Internship Placements</h1>
+        <p>Explore and apply to positions across engineering tracking routes</p>
+        <div class="search-container"><input type="text" id="searchInput" class="search-box" placeholder="🔍 Search roles, companies, locations..." onkeyup="searchInternships()"></div>
+    </section>
+
+    <section class="internship-container" id="listingsContainer">
+        <div class="empty-msg"><h3>Loading positions...</h3></div>
+    </section>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", loadLiveInternships);
+
+        async function loadLiveInternships() {
+            try {
+                const response = await fetch("http://localhost:3000/api/internships");
+                const internships = await response.json();
+                const container = document.getElementById("listingsContainer");
+
+                if (internships.length === 0) {
+                    container.innerHTML = `<div class="empty-msg"><h3>No Openings Available Yet</h3></div>`; return;
+                }
+
+                container.innerHTML = internships.map(job => `
+                    <div class="card">
+                        <div class="company">${job.company}</div>
+                        <div class="role">${job.role}</div>
+                        <div class="details">
+                            📍 <b>Location:</b> ${job.location}<br>
+                            ⏳ <b>Duration:</b> ${job.duration}<br>
+                            💰 <b>Stipend:</b> ${job.stipend}
+                        </div>
+                        <button onclick="applyJob('${job.role}', '${job.company}')">Apply Track</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                document.getElementById("listingsContainer").innerHTML = `<div class="empty-msg" style="color:red;"><h3>Failed to sync pipeline listings.</h3></div>`;
+            }
+        }
+
+        async function applyJob(role, company) { 
+            const cachedProfile = localStorage.getItem("userProfile");
+            if (!cachedProfile) { alert("Log in to apply."); window.location.href = "login.html"; return; }
+            
+            const user = JSON.parse(cachedProfile);
+            const job_title = `${role} at ${company}`;
+
+            try {
+                const response = await fetch("http://localhost:3000/api/applications/apply", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ student_id: user.id, student_name: user.name, job_title: job_title })
+                });
+                if (response.ok) { alert(`🎉 Success! Application for "${job_title}" filed into database clusters.`); }
+            } catch (error) { alert("Connection fault handling transmission data packets."); }
+        }
+
+        function searchInternships() {
+            const query = document.getElementById("searchInput").value.toLowerCase();
+            document.querySelectorAll(".internship-container .card").forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(query) ? "flex" : "none";
+            });
+        }
+    </script>
+</body>
+</html>

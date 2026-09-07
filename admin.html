@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control Center</title>
+
+    <script>
+        (function() {
+            const userRole = localStorage.getItem("userRole");
+            
+            if (userRole !== "admin") {
+                // Instantly intercept non-admins and bounce them back to the login screen
+                alert("⛔ ACCESS DENIED: This matrix terminal is restricted to Administrators only.");
+                window.location.href = "login.html";
+            }
+        })();
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #0f172a; color: #f1f5f9; min-height: 100vh; }
+        header {
+            background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+        }
+        header h2 { background: linear-gradient(to right, #3b82f6, #8b5cf6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+        nav a { color: #94a3b8; text-decoration: none; margin-left: 20px; font-weight: 500; font-size: 14px; cursor: pointer; }
+        nav a:hover { color: #fff; }
+        .container { padding: 40px; max-width: 1200px; margin: auto; }
+        .title { margin-bottom: 30px; }
+        .title h1 { font-size: 28px; font-weight: 700; margin-bottom: 5px; }
+        .title p { color: #64748b; font-size: 15px; }
+        .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .card { background: #1e293b; padding: 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.02); }
+        .card h2 { color: #3b82f6; font-size: 32px; font-weight: 800; margin-bottom: 5px; }
+        .card p { color: #94a3b8; font-size: 14px; }
+        
+        .workspace-panel { background: #1e293b; border-radius: 20px; padding: 30px; border: 1px solid rgba(255,255,255,0.02); margin-bottom: 40px; }
+        .workspace-panel h3 { font-size: 18px; margin-bottom: 20px; color: #cbd5e1; }
+        .table-container { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 14px 20px; background: #0f172a; color: #3b82f6; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        td { padding: 16px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: #e2e8f0; font-size: 15px; }
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
+        .empty-msg { text-align: center; color: #64748b; padding: 30px; font-style: italic; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        input {
+            width: 100%; padding: 12px 16px; background: #0f172a; 
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; 
+            outline: none; color: white; font-size: 15px; transition: 0.3s;
+        }
+        input:focus { border-color: #3b82f6; }
+        button {
+            padding: 12px 24px; border: none; background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            color: white; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 600;
+            transition: 0.2s;
+        }
+        button:hover { transform: translateY(-1px); filter: brightness(1.1); }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>Control Matrix</h2>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="internships.html">Internships</a>
+            <a id="navLogout">Logout</a>
+        </nav>
+    </header>
+
+    <section class="container">
+        <div class="title">
+            <h1 id="adminGreeting">Welcome, Admin Operator 💻</h1>
+            <p>Monitoring infrastructure registration databases and metric analytics maps.</p>
+        </div>
+
+        <div class="dashboard-cards">
+            <div class="card"><h2 id="studentCount">0</h2><p>Registered Students (Live)</p></div>
+            <div class="card"><h2 id="internshipCount">0</h2><p>Internships Posted (Live)</p></div>
+            <div class="card"><h2>Active Node Tracking</h2><p style="color:#10b981; font-weight:700;">🟢 Online Connected</p></div>
+        </div>
+
+        <div class="workspace-panel">
+            <h3>👥 Registered Student Index Rows</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>Database ID</th><th>Full Name</th><th>Email Address</th></tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                        <tr><td colspan="3" class="empty-msg">Querying database engine cluster...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="workspace-panel">
+            <h3>📩 Incoming Student Applications & Interview Scheduler</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Applied Position</th>
+                            <th>Current Status</th>
+                            <th>Schedule Interview Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminAppTableBody">
+                        <tr><td colspan="4" class="empty-msg">Awaiting application tracking signals...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="workspace-panel">
+            <h3>💼 Create New Internship Track</h3>
+            <div class="form-grid">
+                <input type="text" id="intCompany" placeholder="Company Name (e.g., Google)" required>
+                <input type="text" id="intRole" placeholder="Job Role (e.g., Node Specialist)" required>
+                <input type="text" id="intLocation" placeholder="Location (e.g., Bangalore)" required>
+                <input type="text" id="intStipend" placeholder="Stipend (e.g., ₹25,000/month)" required>
+                <input type="text" id="intDuration" placeholder="Duration (e.g., 3 Months)" required>
+            </div>
+            <div style="text-align: right;">
+                <button onclick="postInternship()">Publish Position</button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchRegisteredStudents();
+            fetchInternshipsCount();
+            fetchIncomingApplications();
+            initAdminSession();
+        });
+
+        // 🛠️ STEP 3: MANAGE SYSTEM LOGOUT AND ADMINISTRATIVE IDENTITY
+        function initAdminSession() {
+            // Read admin credentials to style dashboard custom elements
+            const storedName = localStorage.getItem("userName");
+            if (storedName) {
+                document.getElementById('adminGreeting').innerHTML = `Welcome, ${storedName} 💻`;
+            }
+
+            // Click interceptor to scrub session keys from storage array
+            document.getElementById('navLogout').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem("userRole");
+                localStorage.removeItem("userName");
+                localStorage.removeItem("userProfile");
+                
+                alert("Matrix terminal disconnected. Local authentication cleared.");
+                window.location.href = "login.html";
+            });
+        }
+
+        async function fetchRegisteredStudents() {
+            try {
+                const response = await fetch("http://localhost:3000/api/admin/students");
+                const students = await response.json();
+                document.getElementById("studentCount").innerText = students.length;
+                const tableBody = document.getElementById("studentTableBody");
+                
+                if (students.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="3" class="empty-msg">No registered students found.</td></tr>`;
+                    return;
+                }
+                tableBody.innerHTML = students.map(student => `
+                    <tr>
+                        <td style="color: #64748b; font-weight: bold;"># ${student.id}</td>
+                        <td style="font-weight: 600;">${student.name}</td>
+                        <td style="color: #94a3b8;">${student.email}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                document.getElementById("studentTableBody").innerHTML = `<tr><td colspan="3" class="empty-msg" style="color: #ef4444;">❌ Error matching rows.</td></tr>`;
+            }
+        }
+
+        async function fetchInternshipsCount() {
+            try {
+                const response = await fetch("http://localhost:3000/api/internships");
+                if (response.ok) {
+                    const internships = await response.json();
+                    document.getElementById("internshipCount").innerText = internships.length;
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        async function fetchIncomingApplications() {
+            try {
+                const response = await fetch("http://localhost:3000/api/applications/admin-view");
+                const apps = await response.json();
+                const tableBody = document.getElementById("adminAppTableBody");
+
+                if (apps.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="4" class="empty-msg">No student applications received yet.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = apps.map(app => {
+                    let actionContent = '';
+                    if (app.status === 'Applied') {
+                        actionContent = `
+                            <input type="datetime-local" id="date_${app.id}" style="width:auto; padding:6px; font-size:12px; margin-right:5px;">
+                            <button onclick="scheduleInterview(${app.id})" style="padding:6px 12px; font-size:12px;">Schedule</button>
+                        `;
+                    } else {
+                        actionContent = `<span style="color:#10b981; font-weight:600;">🗓️ Set for: ${app.interview_date}</span>`;
+                    }
+
+                    return `
+                        <tr>
+                            <td style="font-weight:600;">${app.student_name}</td>
+                            <td style="color:#94a3b8;">${app.job_title}</td>
+                            <td>
+                                <span style="padding:4px 10px; border-radius:20px; font-size:12px; font-weight:700; 
+                                background:${app.status === 'Applied' ? 'rgba(234,179,8,0.1)' : 'rgba(16,185,129,0.1)'};
+                                color:${app.status === 'Applied' ? '#eab308' : '#10b981'};">
+                                    ${app.status}
+                                </span>
+                            </td>
+                            <td>${actionContent}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) { console.error(error); }
+        }
+
+        async function scheduleInterview(appId) {
+            const dateInput = document.getElementById(`date_${appId}`).value;
+            if (!dateInput) { alert("Select a date and time slot first!"); return; }
+            const cleanDate = new Date(dateInput).toLocaleString();
+
+            try {
+                const response = await fetch("http://localhost:3000/api/applications/schedule", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ application_id: appId, interview_date: cleanDate })
+                });
+                if (response.ok) {
+                    alert("🚀 Interview slot locked onto database!");
+                    fetchIncomingApplications();
+                }
+            } catch (error) { alert("Error connecting scheduler application endpoint."); }
+        }
+
+        async function postInternship() {
+            const company = document.getElementById("intCompany").value.trim();
+            const role = document.getElementById("intRole").value.trim();
+            const location = document.getElementById("intLocation").value.trim();
+            const stipend = document.getElementById("intStipend").value.trim();
+            const duration = document.getElementById("intDuration").value.trim();
+
+            if (!company || !role || !location || !stipend || !duration) {
+                alert("Please fill out all vacancy form fields."); return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:3000/api/internships", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ company, role, location, stipend, duration })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert("🚀 " + data.message);
+                    document.getElementById("intCompany").value = "";
+                    document.getElementById("intRole").value = "";
+                    document.getElementById("intLocation").value = "";
+                    document.getElementById("intStipend").value = "";
+                    document.getElementById("intDuration").value = "";
+                    fetchInternshipsCount();
+                }
+            } catch (error) { alert("Connection fault across server mapping blocks."); }
+        }
+    </script>
+</body>
+</html>

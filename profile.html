@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Profile Interface</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: #060814; color: #f1f5f9; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; position: relative; }
+        body::before { content: ''; position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(0,0,0,0) 70%); top: -10%; left: -10%; z-index: -1; pointer-events: none; }
+        body::after { content: ''; position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, rgba(0,0,0,0) 70%); bottom: -5%; right: -5%; z-index: -1; pointer-events: none; }
+        header { background: rgba(10, 15, 30, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        header h2 { font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; background: linear-gradient(to right, #6366f1, #a855f7); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        nav a { color: #64748b; text-decoration: none; margin-left: 25px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        nav a.active { color: #f1f5f9; text-shadow: 0 0 15px rgba(168, 85, 247, 0.6); }
+        .wrapper { max-width: 1100px; width: 90%; margin: 40px auto; display: grid; grid-template-columns: 320px 1fr; gap: 35px; }
+        .profile-sidebar { background: linear-gradient(135deg, rgba(20, 25, 45, 0.7), rgba(10, 12, 25, 0.7)); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 24px; padding: 40px 30px; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4); display: flex; flex-direction: column; align-items: center; position: relative; }
+        .profile-sidebar::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(to right, #6366f1, #a855f7); }
+        .avatar-container { position: relative; width: 120px; height: 120px; margin-bottom: 25px; }
+        .avatar-ring { position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 50%; border: 2px dashed rgba(168, 85, 247, 0.4); animation: rotateRing 25s linear infinite; }
+        .avatar-inner { width: 104px; height: 104px; background: linear-gradient(135deg, #111428, #1a103c); border-radius: 50%; margin: 8px; display: flex; justify-content: center; align-items: center; font-size: 38px; color: #c084fc; box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.2); }
+        @keyframes rotateRing { 100% { transform: rotate(360deg); } }
+        .profile-sidebar h2 { font-size: 24px; font-weight: 700; color: #f8fafc; margin-bottom: 6px; }
+        .badge { background: rgba(99, 102, 241, 0.1); color: #818cf8; padding: 5px 16px; border-radius: 30px; font-size: 11px; font-weight: 700; text-transform: uppercase; border: 1px solid rgba(99, 102, 241, 0.25); margin-bottom: 35px; }
+        .meta-list { width: 100%; text-align: left; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 25px; }
+        .meta-item { margin-bottom: 20px; }
+        .meta-item label { display: block; font-size: 10px; color: #475569; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; font-weight: 700; }
+        .meta-item span { font-size: 14px; color: #cbd5e1; word-break: break-all; }
+        .main-content { display: flex; flex-direction: column; gap: 30px; }
+        .glass-card { background: rgba(13, 17, 34, 0.45); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 24px; padding: 35px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3); }
+        .glass-card h3 { font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 25px; color: #94a3b8; }
+        .activity-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .metric-box { background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 25px 20px; text-align: center; }
+        .metric-box h4 { font-size: 36px; font-weight: 800; background: linear-gradient(to right, #3b82f6, #60a5fa); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .metric-box p { font-size: 12px; color: #475569; text-transform: uppercase; }
+        .skill-stat { margin-bottom: 22px; }
+        .skill-info { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #94a3b8; }
+        .track-bar { width: 100%; height: 5px; background: #0f1222; border-radius: 20px; overflow: hidden; }
+        .fill-bar { height: 100%; border-radius: 20px; }
+        .btn-modern { background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border: none; padding: 14px 28px; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 13px; text-transform: uppercase; box-shadow: 0 4px 20px rgba(168, 85, 247, 0.25); }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>Workstation Matrix</h2>
+        <nav><a href="index.html">Home</a><a href="internships.html">Internships</a><a href="dashboard.html">Dashboard</a><a href="#" class="active">Profile</a></nav>
+    </header>
+
+    <div class="wrapper">
+        <div class="profile-sidebar">
+            <div class="avatar-container"><div class="avatar-ring"></div><div class="avatar-inner" id="userInitial">⚡</div></div>
+            <h2 id="profileName">Loading...</h2>
+            <div class="badge">Verified Candidate</div>
+            <div class="meta-list">
+                <div class="meta-item"><label>Identity Node Address</label><span id="profileEmail">resolving routing index...</span></div>
+                <div class="meta-item"><label>System Node Status</label><span style="color: #10b981; font-size:13px; font-weight:600;">● Operational Connection</span></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="glass-card">
+                <h3>📊 Core Activity Metrics</h3>
+                <div class="activity-grid">
+                    <div class="metric-box"><h4>3</h4><p>Applications</p></div>
+                    <div class="metric-box"><h4 style="background: linear-gradient(to right, #a855f7, #c084fc); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">100%</h4><p>Completeness</p></div>
+                    <div class="metric-box"><h4 style="background: linear-gradient(to right, #10b981, #34d399); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">1</h4><p>Shortlisted</p></div>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <h3>⚡ Engineering Domain Competencies</h3>
+                <div class="skill-stat">
+                    <div class="skill-info"><span>Frontend Engineering Layouts</span><span style="color: #6366f1;">90%</span></div>
+                    <div class="track-bar"><div class="fill-bar" style="width: 90%; background: linear-gradient(to right, #3b82f6, #6366f1);"></div></div>
+                </div>
+                <div class="skill-stat">
+                    <div class="skill-info"><span>Database Systems & Structured SQL</span><span style="color: #10b981;">75%</span></div>
+                    <div class="track-bar"><div class="fill-bar" style="width: 75%; background: linear-gradient(to right, #6366f1, #10b981);"></div></div>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <p style="color: #475569; font-size: 13px;">System matrix modules completely localized.</p>
+                    <button class="btn-modern" onclick="location.href='dashboard.html'">Workspace Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const cachedProfile = localStorage.getItem("userProfile");
+            if (!cachedProfile) { window.location.href = "login.html"; return; }
+            const user = JSON.parse(cachedProfile);
+            document.getElementById("profileName").innerText = user.name;
+            document.getElementById("profileEmail").innerText = user.email;
+            if (user.name) { document.getElementById("userInitial").innerText = user.name.charAt(0).toUpperCase(); }
+        });
+    </script>
+</body>
+</html>

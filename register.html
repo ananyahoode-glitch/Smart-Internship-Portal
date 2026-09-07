@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Smart Internship Portal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { height: 100vh; display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #2563eb, #7c3aed); overflow: hidden; }
+        .glass-box { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); padding: 40px; width: 380px; border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); color: white; text-align: center; }
+        h2 { margin-bottom: 25px; font-weight: 600; letter-spacing: 1px; }
+        input { width: 100%; padding: 14px 20px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; outline: none; color: white; font-size: 16px; margin-bottom: 20px; transition: 0.3s; }
+        input::placeholder { color: rgba(255, 255, 255, 0.7); }
+        input:focus { background: rgba(255, 255, 255, 0.2); border-color: #fff; }
+        button { width: 100%; padding: 14px; border: none; background: white; color: #2563eb; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.3s; }
+        button:hover { transform: translateY(-2px); background: #f8fafc; }
+        p { margin-top: 20px; font-size: 14px; color: rgba(255, 255, 255, 0.8); }
+        a { color: white; font-weight: bold; text-decoration: none; }
+        #toast { visibility: hidden; min-width: 280px; background-color: #fff; color: #333; text-align: center; border-radius: 10px; padding: 16px; position: fixed; z-index: 1000; right: 30px; top: 30px; font-size: 15px; font-weight: 500; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: 0.3s; opacity: 0; }
+        #toast.show { visibility: visible; opacity: 1; }
+        #toast.success { border-left: 5px solid #10b981; }
+        #toast.error { border-left: 5px solid #ef4444; }
+    </style>
+</head>
+<body>
+    <div id="toast"></div>
+    <div class="glass-box">
+        <h2>Create Account</h2>
+        <input type="text" id="regName" placeholder="Full Name" required>
+        <input type="email" id="regEmail" placeholder="Email Address" required>
+        <input type="password" id="regPassword" placeholder="Password" required>
+        <button onclick="registerUser()">Sign Up</button>
+        <p>Already have an account? <a href="login.html">Login</a></p>
+    </div>
+
+    <script>
+        function showToast(message, type) {
+            const toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.className = "show " + type;
+            setTimeout(() => { toast.className = ""; }, 3000);
+        }
+        async function registerUser() {
+            const name = document.getElementById("regName").value.trim();
+            const email = document.getElementById("regEmail").value.trim();
+            const password = document.getElementById("regPassword").value;
+
+            if (!name || !email || !password) { showToast("⚠️ Fill all fields", "error"); return; }
+            try {
+                const response = await fetch("http://localhost:3000/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showToast("🎉 " + data.message, "success");
+                    setTimeout(() => { window.location.href = "login.html"; }, 1500);
+                } else { showToast("❌ " + data.message, "error"); }
+            } catch (error) { showToast("🚫 Connection failed.", "error"); }
+        }
+    </script>
+</body>
+</html>
